@@ -1,28 +1,26 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  MapPin, 
-  Leaf, 
-  ShieldCheck, 
-  User, 
-  Mail, 
-  CalendarDays, 
-  Scissors, 
-  Plus 
+import {
+  Search,
+  MapPin,
+  Leaf,
+  ShieldCheck,
+  User,
+  Mail,
+  CalendarDays,
+  Scissors,
 } from "lucide-react";
 import NewFarmDialog from "./NewFarmDialog";
 import api from "@/services/apiService";
@@ -30,29 +28,32 @@ import api from "@/services/apiService";
 const FarmRegistry = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Fetch farms data using React Query
+
+  // Fetch farms data
   const { data: farmList = [], refetch: refetchFarms } = useQuery({
     queryKey: ['farms'],
     queryFn: () => api.farms.getAllFarms(),
   });
-  
-  // Filter farms based on search term
-  const filteredFarms = farmList.filter(farm => 
+
+  // Fetch all batches once
+  const { data: allBatches = [] } = useQuery({
+    queryKey: ['allBatches'],
+    queryFn: () => api.batches.getAllBatches(),
+  });
+
+  // Group batches by farmId
+  const batchesByFarmId: Record<string, any[]> = allBatches.reduce((acc, batch) => {
+    const farmId = batch.farmId;
+    if (!acc[farmId]) acc[farmId] = [];
+    acc[farmId].push(batch);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  // Filter farms based on search
+  const filteredFarms = farmList.filter(farm =>
     farm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     farm.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Get wool batches for each farm
-  const getBatchesForFarm = (farmId: string) => {
-    const { data: batches = [] } = useQuery({
-      queryKey: ['farmBatches', farmId],
-      queryFn: () => api.batches.getBatchesByFarmId(farmId),
-      enabled: !!farmId,
-    });
-    
-    return batches;
-  };
 
   // Handle farm added event
   const handleFarmAdded = () => {
@@ -92,8 +93,8 @@ const FarmRegistry = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredFarms.map((farm) => {
-            const farmBatches = getBatchesForFarm(farm.id);
-            
+            const farmBatches = batchesByFarmId[farm.id] || [];
+
             return (
               <Card key={farm.id} className="border-wool-beige hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
@@ -110,7 +111,7 @@ const FarmRegistry = () => {
                     {farm.location}
                   </CardDescription>
                 </CardHeader>
-                
+
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -120,7 +121,7 @@ const FarmRegistry = () => {
                       </div>
                       <span className="font-medium">{farm.sheepCount}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <Scissors className="h-4 w-4 mr-2 text-wool-brown" />
@@ -128,7 +129,7 @@ const FarmRegistry = () => {
                       </div>
                       <span className="font-medium">{farm.annualProduction} kg</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <CalendarDays className="h-4 w-4 mr-2 text-wool-brown" />
@@ -136,7 +137,7 @@ const FarmRegistry = () => {
                       </div>
                       <span className="font-medium">{new Date(farm.joinedDate).toLocaleDateString()}</span>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <ShieldCheck className="h-4 w-4 mr-2 text-wool-brown" />
@@ -150,7 +151,7 @@ const FarmRegistry = () => {
                         ))}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <User className="h-4 w-4 mr-2 text-wool-brown" />
@@ -163,13 +164,13 @@ const FarmRegistry = () => {
                     </div>
                   </div>
                 </CardContent>
-                
+
                 <CardFooter className="flex justify-between pt-2 border-t">
                   <div className="text-sm text-wool-gray">
                     Active Batches: <span className="font-medium">{farmBatches.length}</span>
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="border-wool-beige hover:bg-wool-beige"
                     onClick={() => handleViewDetails(farm.id)}
                   >

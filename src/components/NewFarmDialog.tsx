@@ -1,19 +1,17 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
+import {
   Form,
   FormControl,
   FormField,
@@ -22,13 +20,13 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Plus } from "lucide-react";
-import { farms } from "@/data/wool-data";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import api from "../services/apiService";
 
-// Farm form schema
 const farmFormSchema = z.object({
+  id: z.string().min(1, "Farm ID is required"),
   name: z.string().min(3, "Farm name must be at least 3 characters"),
   location: z.string().min(3, "Location must be at least 3 characters"),
   sheepCount: z.coerce.number().min(1, "Must have at least 1 sheep"),
@@ -48,10 +46,11 @@ interface NewFarmDialogProps {
 const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  
+
   const form = useForm<FarmFormValues>({
     resolver: zodResolver(farmFormSchema),
     defaultValues: {
+      id: "",
       name: "",
       location: "",
       sheepCount: undefined,
@@ -63,46 +62,38 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
     },
   });
 
-  const onSubmit = (data: FarmFormValues) => {
-    // Create new farm ID (simple implementation)
-    const lastId = parseInt(farms[farms.length - 1].id.split('-')[1]);
-    const newId = `farm-${String(lastId + 1).padStart(3, '0')}`;
-    
-    // Process certifications into array
-    const certificationArray = data.certifications
-      .split(',')
-      .map(cert => cert.trim())
-      .filter(cert => cert.length > 0);
-    
-    // Create new farm object
-    const newFarm = {
-      id: newId,
-      name: data.name,
-      location: data.location,
-      sheepCount: data.sheepCount,
-      annualProduction: data.annualProduction,
-      certifications: certificationArray,
-      contactPerson: data.contactPerson,
-      contactEmail: data.contactEmail,
-      joinedDate: new Date().toISOString(),
-      photo: data.photo || "https://images.unsplash.com/photo-1516466823543-f945a3732093",
-    };
-    
-    // Add farm to the list (in a real app, this would be an API call)
-    farms.push(newFarm);
-    
-    // Show success toast
-    toast({
-      title: "Farm Registered",
-      description: `${data.name} has been successfully registered.`,
-    });
-    
-    // Close dialog and reset form
-    setOpen(false);
-    form.reset();
-    
-    // Notify parent of the update
-    onFarmAdded();
+  const onSubmit = async (data: FarmFormValues) => {
+    try {
+      const certificationArray = data.certifications
+        .split(',')
+        .map(cert => cert.trim())
+        .filter(cert => cert.length > 0);
+
+      const newFarmData = {
+        id: data.id,
+        name: data.name,
+        location: data.location,
+        sheep_count: data.sheepCount,
+        annual_production: data.annualProduction,
+        certifications: certificationArray,
+        contact_person: data.contactPerson,
+        contact_email: data.contactEmail,
+        photo: data.photo || "https://images.unsplash.com/photo-1516466823543-f945a3732093",
+      };
+
+      await api.farms.createFarm(newFarmData);
+
+      toast({
+        title: "Farm Registered",
+        description: `${data.name} has been successfully registered.`,
+      });
+
+      setOpen(false);
+      form.reset();
+      onFarmAdded();
+    } catch (error) {
+      // handled in api layer
+    }
   };
 
   return (
@@ -120,10 +111,26 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
             Enter the farm details to register in the system.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* ✅ Farm ID */}
+              <FormField
+                control={form.control}
+                name="id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Farm ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="FARM001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="name"
@@ -137,7 +144,7 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="location"
@@ -151,7 +158,7 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="sheepCount"
@@ -165,7 +172,7 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="annualProduction"
@@ -179,7 +186,7 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="contactPerson"
@@ -193,7 +200,7 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="contactEmail"
@@ -208,7 +215,7 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="certifications"
@@ -216,13 +223,13 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                 <FormItem>
                   <FormLabel>Certifications (comma-separated)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Organic, Sustainable Farming" {...field} />
+                    <Input placeholder="Organic, Sustainable Wool" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="photo"
@@ -236,18 +243,18 @@ const NewFarmDialog = ({ onFarmAdded }: NewFarmDialogProps) => {
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setOpen(false)}
                 className="mt-2"
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="bg-wool-green hover:bg-wool-darkBrown text-white mt-2"
               >
                 Register Farm

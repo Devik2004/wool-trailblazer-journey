@@ -1,25 +1,24 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
+import {
   Form,
   FormControl,
   FormField,
@@ -28,7 +27,6 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Plus } from "lucide-react";
-import { farms } from "@/data/wool-data";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +35,7 @@ import { useQuery } from "@tanstack/react-query";
 
 // Batch form schema
 const batchFormSchema = z.object({
+  id: z.string().min(1, "Batch ID is required"),
   farmId: z.string().min(1, "Farm is required"),
   weight: z.coerce.number().min(1, "Weight must be at least 1kg"),
   grade: z.enum(["Fine", "Medium", "Coarse", "Superfine"] as const),
@@ -54,16 +53,17 @@ interface NewBatchDialogProps {
 const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  
-  // Fetch farms data from API
+
+  // Fetch farms from API
   const { data: farmList = [] } = useQuery({
     queryKey: ['farms'],
     queryFn: () => api.farms.getAllFarms(),
   });
-  
+
   const form = useForm<BatchFormValues>({
     resolver: zodResolver(batchFormSchema),
     defaultValues: {
+      id: "",
       farmId: "",
       weight: undefined,
       grade: "Fine",
@@ -75,27 +75,24 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
 
   const onSubmit = async (data: BatchFormValues) => {
     try {
-      // Create new batch using the API service
       const newBatch = await api.batches.createBatch({
-        farmId: data.farmId,
+        id: data.id,
+        farm: data.farmId,
         weight: data.weight,
         grade: data.grade,
         color: data.color,
-        qualityScore: data.qualityScore,
-        notes: data.notes
+        current_status: "Shorn",
+        current_location: "Farm Warehouse",
+        quality_score: (data.qualityScore / 10).toFixed(1),
       });
-      
-      // Show success toast
+
       toast({
         title: "Batch Added",
         description: `Batch ${newBatch.id} has been successfully added.`,
       });
-      
-      // Close dialog and reset form
+
       setOpen(false);
       form.reset();
-      
-      // Notify parent of the update
       onBatchAdded();
     } catch (error) {
       toast({
@@ -121,17 +118,34 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
             Enter the details of the newly sheared wool batch.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+            
+            {/* Batch ID */}
+            <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Batch ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter unique batch ID" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Farm Selection */}
             <FormField
               control={form.control}
               name="farmId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Farm</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -151,8 +165,9 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Weight */}
               <FormField
                 control={form.control}
                 name="weight"
@@ -166,15 +181,16 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
+              {/* Grade */}
               <FormField
                 control={form.control}
                 name="grade"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Grade</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -193,7 +209,8 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
+              {/* Color */}
               <FormField
                 control={form.control}
                 name="color"
@@ -207,7 +224,8 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                   </FormItem>
                 )}
               />
-              
+
+              {/* Quality Score */}
               <FormField
                 control={form.control}
                 name="qualityScore"
@@ -222,7 +240,8 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                 )}
               />
             </div>
-            
+
+            {/* Notes */}
             <FormField
               control={form.control}
               name="notes"
@@ -236,19 +255,12 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                className="bg-wool-green hover:bg-wool-darkBrown text-white"
-              >
+              <Button type="submit" className="bg-wool-green hover:bg-wool-darkBrown text-white">
                 Add Batch
               </Button>
             </DialogFooter>
