@@ -1,4 +1,3 @@
-
 import { farms, woolBatches, processingFacilities, analyticsData } from "@/data/wool-data";
 import { toast } from "sonner";
 
@@ -10,7 +9,8 @@ import type {
   ProcessingFacility, 
   JourneyHistoryItem,
   AnalyticsData,
-  WoolGrade
+  WoolGrade,
+  BatchStatus
 } from "@/data/wool-data";
 
 /**
@@ -280,7 +280,7 @@ export const batchAPI = {
   updateBatchStatus: async (
     batchId: string, 
     statusUpdate: {
-      status: string;
+      status: BatchStatus;
       location: string;
       handledBy: string;
       notes?: string;

@@ -1,4 +1,3 @@
-
 // Types for our data model
 export type WoolGrade = 'Fine' | 'Medium' | 'Coarse' | 'Superfine';
 export type BatchStatus = 'Sheared' | 'Sorted' | 'Cleaned' | 'Processed' | 'Spun' | 'Dyed' | 'Woven' | 'Finished' | 'Delivered';
@@ -16,6 +15,14 @@ export interface Farm {
   photo: string;
 }
 
+export interface JourneyHistoryItem {
+  status: BatchStatus;
+  location: string;
+  timestamp: string;
+  handledBy: string;
+  notes?: string;
+}
+
 export interface WoolBatch {
   id: string;
   farmId: string;
@@ -25,13 +32,7 @@ export interface WoolBatch {
   color: string;
   currentStatus: BatchStatus;
   currentLocation: string;
-  journeyHistory: {
-    status: BatchStatus;
-    location: string;
-    timestamp: string;
-    handledBy: string;
-    notes?: string;
-  }[];
+  journeyHistory: JourneyHistoryItem[];
   qualityScore: number; // 0-100
 }
 
@@ -42,6 +43,25 @@ export interface ProcessingFacility {
   location: string;
   capacity: number; // in kg
   currentUtilization: number; // percentage
+}
+
+// Define the AnalyticsData type
+export interface AnalyticsData {
+  totalWoolProduced: number;
+  averageQualityScore: number;
+  productionByFarm: Array<{
+    farmName: string;
+    production: number;
+  }>;
+  statusDistribution: Record<BatchStatus, number>;
+  monthlyProduction: Array<{
+    month: string;
+    amount: number;
+  }>;
+  facilityUtilization: Array<{
+    facilityName: string;
+    utilizationPercentage: number;
+  }>;
 }
 
 // Sample data
@@ -299,7 +319,7 @@ export const processingFacilities: ProcessingFacility[] = [
 ];
 
 // Statistics and metrics for analytics
-export const analyticsData = {
+export const analyticsData: AnalyticsData = {
   totalWoolProduced: woolBatches.reduce((total, batch) => total + batch.weight, 0),
   averageQualityScore: Math.round(woolBatches.reduce((total, batch) => total + batch.qualityScore, 0) / woolBatches.length),
   productionByFarm: farms.map(farm => ({

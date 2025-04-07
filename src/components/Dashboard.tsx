@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,6 +58,15 @@ const Dashboard = () => {
     { name: 'Coarse', value: woolBatches.filter(batch => batch.grade === 'Coarse').length },
     { name: 'Superfine', value: woolBatches.filter(batch => batch.grade === 'Superfine').length },
   ];
+
+  // Default value for analytics data if it's not loaded yet
+  const defaultAnalyticsData = {
+    averageQualityScore: 0,
+    monthlyProduction: []
+  };
+
+  // Safely access analytics data
+  const safeAnalyticsData = analyticsData || defaultAnalyticsData;
 
   return (
     <div className="p-4 md:p-6">
@@ -118,7 +128,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="flex items-center">
               <ShieldCheck className="h-5 w-5 text-wool-lightGreen mr-2" />
-              <div className="text-2xl font-bold">{analyticsData.averageQualityScore}</div>
+              <div className="text-2xl font-bold">{safeAnalyticsData.averageQualityScore}</div>
             </div>
           </CardContent>
         </Card>
@@ -146,7 +156,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData.monthlyProduction}>
+                    <BarChart data={safeAnalyticsData.monthlyProduction}>
                       <XAxis dataKey="month" />
                       <YAxis />
                       <Tooltip />

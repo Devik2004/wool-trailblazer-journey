@@ -18,6 +18,8 @@ const StatusUpdates = () => {
   
   // Extract all journey history items from all batches
   const getRecentUpdates = () => {
+    if (!woolBatches.length) return [];
+    
     const allUpdates = woolBatches.flatMap(batch => 
       batch.journeyHistory.map(history => ({
         batchId: batch.id,
