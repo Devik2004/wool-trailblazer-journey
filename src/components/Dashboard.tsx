@@ -1,10 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart3, 
-  Sheep2 as Sheep, 
+  Leaf, 
   Package, 
   Factory, 
   ShieldCheck, 
@@ -60,7 +59,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Sheep className="h-5 w-5 text-wool-darkBrown mr-2" />
+              <Leaf className="h-5 w-5 text-wool-darkBrown mr-2" />
               <div className="text-2xl font-bold">{farms.length}</div>
             </div>
           </CardContent>

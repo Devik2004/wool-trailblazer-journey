@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Card, 
@@ -14,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
   MapPin, 
-  Sheep2 as Sheep, 
+  Leaf, 
   ShieldCheck, 
   User, 
   Mail, 
@@ -92,7 +91,7 @@ const FarmRegistry = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <Sheep className="h-4 w-4 mr-2 text-wool-brown" />
+                        <Leaf className="h-4 w-4 mr-2 text-wool-brown" />
                         <span className="text-sm">Sheep Count</span>
                       </div>
                       <span className="font-medium">{farm.sheepCount}</span>
