@@ -1,4 +1,6 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Card, 
   CardContent, 
@@ -22,12 +24,15 @@ import {
   Plus 
 } from "lucide-react";
 import { farms, woolBatches } from "@/data/wool-data";
+import NewFarmDialog from "./NewFarmDialog";
 
 const FarmRegistry = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [farmList, setFarmList] = useState([...farms]);
   
   // Filter farms based on search term
-  const filteredFarms = farms.filter(farm => 
+  const filteredFarms = farmList.filter(farm => 
     farm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     farm.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -35,6 +40,16 @@ const FarmRegistry = () => {
   // Get wool batches for each farm
   const getFarmBatches = (farmId: string) => {
     return woolBatches.filter(batch => batch.farmId === farmId);
+  };
+
+  // Handle farm added event
+  const handleFarmAdded = () => {
+    setFarmList([...farms]);
+  };
+
+  // Handle view details click
+  const handleViewDetails = (farmId: string) => {
+    navigate(`/farm-details/${farmId}`);
   };
 
   return (
@@ -54,10 +69,7 @@ const FarmRegistry = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button className="bg-wool-green hover:bg-wool-darkBrown text-white">
-            <Plus className="mr-2 h-4 w-4" />
-            Register New Farm
-          </Button>
+          <NewFarmDialog onFarmAdded={handleFarmAdded} />
         </div>
       </div>
 
@@ -144,7 +156,11 @@ const FarmRegistry = () => {
                   <div className="text-sm text-wool-gray">
                     Active Batches: <span className="font-medium">{farmBatches.length}</span>
                   </div>
-                  <Button variant="outline" className="border-wool-beige hover:bg-wool-beige">
+                  <Button 
+                    variant="outline" 
+                    className="border-wool-beige hover:bg-wool-beige"
+                    onClick={() => handleViewDetails(farm.id)}
+                  >
                     View Details
                   </Button>
                 </CardFooter>

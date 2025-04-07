@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Search, 
   Package, 
@@ -38,15 +39,18 @@ import {
   Palette, 
   MapPin, 
   History, 
-  ShieldCheck 
+  ShieldCheck,
+  Plus
 } from "lucide-react";
 import { woolBatches, farms, WoolBatch } from "@/data/wool-data";
+import NewBatchDialog from "./NewBatchDialog";
 
 const BatchTracking = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [batchList, setBatchList] = useState([...woolBatches]);
   
   // Filter batches based on search term
-  const filteredBatches = woolBatches.filter(batch => 
+  const filteredBatches = batchList.filter(batch => 
     batch.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     batch.currentStatus.toLowerCase().includes(searchTerm.toLowerCase()) ||
     batch.currentLocation.toLowerCase().includes(searchTerm.toLowerCase())
@@ -95,6 +99,11 @@ const BatchTracking = () => {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  };
+
+  // Handle batch added event
+  const handleBatchAdded = () => {
+    setBatchList([...woolBatches]);
   };
 
   // Render batch details
@@ -193,15 +202,18 @@ const BatchTracking = () => {
         <h1 className="text-2xl md:text-3xl font-bold text-wool-darkBrown mb-4 md:mb-0">
           Batch Tracking
         </h1>
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-wool-gray" />
-          <Input
-            type="text"
-            placeholder="Search batches..."
-            className="pl-8 border-wool-beige"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-wool-gray" />
+            <Input
+              type="text"
+              placeholder="Search batches..."
+              className="pl-8 border-wool-beige"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <NewBatchDialog onBatchAdded={handleBatchAdded} />
         </div>
       </div>
 
