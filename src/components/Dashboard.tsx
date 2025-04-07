@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart3, 
-  Sheep, 
+  Sheep2 as Sheep, 
   Package, 
   Factory, 
   ShieldCheck, 

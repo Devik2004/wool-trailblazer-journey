@@ -11,7 +11,7 @@ import {
   Paintbrush, 
   Shirt, 
   PackageCheck, 
-  TruckDelivery,
+  Truck as TruckDelivery,
   ArrowRight
 } from "lucide-react";
 

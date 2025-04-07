@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
   MapPin, 
-  Sheep, 
+  Sheep2 as Sheep, 
   ShieldCheck, 
   User, 
   Mail, 
