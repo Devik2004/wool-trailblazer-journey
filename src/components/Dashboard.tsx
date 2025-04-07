@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart3, 
   Leaf, 
@@ -10,7 +11,6 @@ import {
   ArrowUpRight, 
   Clock
 } from "lucide-react";
-import { woolBatches, farms, processingFacilities, analyticsData } from "@/data/wool-data";
 import { 
   BarChart, 
   Bar, 
@@ -23,10 +23,32 @@ import {
   Cell
 } from "recharts";
 import StatusUpdates from "./StatusUpdates";
+import api from "@/services/apiService";
 
 const Dashboard = () => {
   // Colors for the pie chart
   const COLORS = ['#A57F60', '#4F7942', '#7D5A50', '#8FBC8F'];
+  
+  // Fetch data using React Query
+  const { data: farms = [] } = useQuery({
+    queryKey: ['farms'],
+    queryFn: () => api.farms.getAllFarms(),
+  });
+  
+  const { data: woolBatches = [] } = useQuery({
+    queryKey: ['woolBatches'],
+    queryFn: () => api.batches.getAllBatches(),
+  });
+  
+  const { data: processingFacilities = [] } = useQuery({
+    queryKey: ['processingFacilities'],
+    queryFn: () => api.facilities.getAllFacilities(),
+  });
+  
+  const { data: analyticsData } = useQuery({
+    queryKey: ['analyticsData'],
+    queryFn: () => api.analytics.getAnalyticsData(),
+  });
   
   // Data for the pie chart
   const pieData = [

@@ -1,60 +1,72 @@
 
-import { woolBatches, farms } from "@/data/wool-data";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import api from "@/services/apiService";
 
 // Gets the most recent updates across all batches
-const getRecentUpdates = () => {
-  // Extract all journey history items from all batches
-  const allUpdates = woolBatches.flatMap(batch => 
-    batch.journeyHistory.map(history => ({
-      batchId: batch.id,
-      farmId: batch.farmId,
-      history
-    }))
-  );
+const StatusUpdates = () => {
+  // Fetch data using React Query
+  const { data: woolBatches = [] } = useQuery({
+    queryKey: ['woolBatches'],
+    queryFn: () => api.batches.getAllBatches(),
+  });
   
-  // Sort by timestamp in descending order (most recent first)
-  return allUpdates.sort((a, b) => 
-    new Date(b.history.timestamp).getTime() - new Date(a.history.timestamp).getTime()
-  ).slice(0, 10); // Get the 10 most recent updates
-};
-
-// Format the timestamp to a human-readable format
-const formatTime = (timestamp: string) => {
-  const date = new Date(timestamp);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric', 
-    hour: '2-digit', 
-    minute: '2-digit'
-  }).format(date);
-};
-
-// Get farm name by ID
-const getFarmName = (farmId: string) => {
-  const farm = farms.find(f => f.id === farmId);
-  return farm ? farm.name : "Unknown Farm";
-};
-
-// Status badge color mapping
-const getStatusBadgeColor = (status: string) => {
-  const statusColors: {[key: string]: string} = {
-    'Sheared': 'bg-wool-beige text-wool-darkBrown',
-    'Sorted': 'bg-wool-beige text-wool-darkBrown',
-    'Cleaned': 'bg-wool-beige text-wool-darkBrown',
-    'Processed': 'bg-wool-brown text-white',
-    'Spun': 'bg-wool-brown text-white',
-    'Dyed': 'bg-wool-brown text-white',
-    'Woven': 'bg-wool-darkBrown text-white',
-    'Finished': 'bg-wool-darkBrown text-white',
-    'Delivered': 'bg-wool-green text-white',
+  const { data: farms = [] } = useQuery({
+    queryKey: ['farms'],
+    queryFn: () => api.farms.getAllFarms(),
+  });
+  
+  // Extract all journey history items from all batches
+  const getRecentUpdates = () => {
+    const allUpdates = woolBatches.flatMap(batch => 
+      batch.journeyHistory.map(history => ({
+        batchId: batch.id,
+        farmId: batch.farmId,
+        history
+      }))
+    );
+    
+    // Sort by timestamp in descending order (most recent first)
+    return allUpdates.sort((a, b) => 
+      new Date(b.history.timestamp).getTime() - new Date(a.history.timestamp).getTime()
+    ).slice(0, 10); // Get the 10 most recent updates
   };
   
-  return statusColors[status] || 'bg-wool-gray';
-};
-
-const StatusUpdates = () => {
   const recentUpdates = getRecentUpdates();
+
+  // Format the timestamp to a human-readable format
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  // Get farm name by ID
+  const getFarmName = (farmId: string) => {
+    const farm = farms.find(f => f.id === farmId);
+    return farm ? farm.name : "Unknown Farm";
+  };
+
+  // Status badge color mapping
+  const getStatusBadgeColor = (status: string) => {
+    const statusColors: {[key: string]: string} = {
+      'Sheared': 'bg-wool-beige text-wool-darkBrown',
+      'Sorted': 'bg-wool-beige text-wool-darkBrown',
+      'Cleaned': 'bg-wool-beige text-wool-darkBrown',
+      'Processed': 'bg-wool-brown text-white',
+      'Spun': 'bg-wool-brown text-white',
+      'Dyed': 'bg-wool-brown text-white',
+      'Woven': 'bg-wool-darkBrown text-white',
+      'Finished': 'bg-wool-darkBrown text-white',
+      'Delivered': 'bg-wool-green text-white',
+    };
+    
+    return statusColors[status] || 'bg-wool-gray';
+  };
   
   return (
     <div className="space-y-4">

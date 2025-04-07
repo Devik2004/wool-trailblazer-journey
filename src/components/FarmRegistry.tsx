@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Card, 
   CardContent, 
@@ -23,13 +24,18 @@ import {
   Scissors, 
   Plus 
 } from "lucide-react";
-import { farms, woolBatches } from "@/data/wool-data";
 import NewFarmDialog from "./NewFarmDialog";
+import api from "@/services/apiService";
 
 const FarmRegistry = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [farmList, setFarmList] = useState([...farms]);
+  
+  // Fetch farms data using React Query
+  const { data: farmList = [], refetch: refetchFarms } = useQuery({
+    queryKey: ['farms'],
+    queryFn: () => api.farms.getAllFarms(),
+  });
   
   // Filter farms based on search term
   const filteredFarms = farmList.filter(farm => 
@@ -38,13 +44,19 @@ const FarmRegistry = () => {
   );
 
   // Get wool batches for each farm
-  const getFarmBatches = (farmId: string) => {
-    return woolBatches.filter(batch => batch.farmId === farmId);
+  const getBatchesForFarm = (farmId: string) => {
+    const { data: batches = [] } = useQuery({
+      queryKey: ['farmBatches', farmId],
+      queryFn: () => api.batches.getBatchesByFarmId(farmId),
+      enabled: !!farmId,
+    });
+    
+    return batches;
   };
 
   // Handle farm added event
   const handleFarmAdded = () => {
-    setFarmList([...farms]);
+    refetchFarms();
   };
 
   // Handle view details click
@@ -80,7 +92,7 @@ const FarmRegistry = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredFarms.map((farm) => {
-            const farmBatches = getFarmBatches(farm.id);
+            const farmBatches = getBatchesForFarm(farm.id);
             
             return (
               <Card key={farm.id} className="border-wool-beige hover:shadow-md transition-shadow">

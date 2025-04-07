@@ -28,10 +28,12 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Plus } from "lucide-react";
-import { farms, woolBatches, WoolGrade } from "@/data/wool-data";
+import { farms } from "@/data/wool-data";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import api from "@/services/apiService";
+import { useQuery } from "@tanstack/react-query";
 
 // Batch form schema
 const batchFormSchema = z.object({
@@ -53,6 +55,12 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   
+  // Fetch farms data from API
+  const { data: farmList = [] } = useQuery({
+    queryKey: ['farms'],
+    queryFn: () => api.farms.getAllFarms(),
+  });
+  
   const form = useForm<BatchFormValues>({
     resolver: zodResolver(batchFormSchema),
     defaultValues: {
@@ -65,48 +73,37 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
     },
   });
 
-  const onSubmit = (data: BatchFormValues) => {
-    // Create new batch ID (simple implementation)
-    const lastId = parseInt(woolBatches[woolBatches.length - 1].id.split('-')[1]);
-    const newId = `batch-${String(lastId + 1).padStart(3, '0')}`;
-    
-    // Create new batch object
-    const newBatch = {
-      id: newId,
-      farmId: data.farmId,
-      shearDate: new Date().toISOString(),
-      weight: data.weight,
-      grade: data.grade as WoolGrade,
-      color: data.color,
-      currentStatus: "Sheared" as const,
-      currentLocation: farms.find(f => f.id === data.farmId)?.name || "Unknown",
-      journeyHistory: [
-        {
-          status: "Sheared" as const,
-          location: farms.find(f => f.id === data.farmId)?.name || "Unknown",
-          timestamp: new Date().toISOString(),
-          handledBy: farms.find(f => f.id === data.farmId)?.contactPerson || "Unknown",
-          notes: data.notes || "Initial shearing",
-        }
-      ],
-      qualityScore: data.qualityScore,
-    };
-    
-    // Add batch to the list (in a real app, this would be an API call)
-    woolBatches.push(newBatch);
-    
-    // Show success toast
-    toast({
-      title: "Batch Added",
-      description: `Batch ${newId} has been successfully added.`,
-    });
-    
-    // Close dialog and reset form
-    setOpen(false);
-    form.reset();
-    
-    // Notify parent of the update
-    onBatchAdded();
+  const onSubmit = async (data: BatchFormValues) => {
+    try {
+      // Create new batch using the API service
+      const newBatch = await api.batches.createBatch({
+        farmId: data.farmId,
+        weight: data.weight,
+        grade: data.grade,
+        color: data.color,
+        qualityScore: data.qualityScore,
+        notes: data.notes
+      });
+      
+      // Show success toast
+      toast({
+        title: "Batch Added",
+        description: `Batch ${newBatch.id} has been successfully added.`,
+      });
+      
+      // Close dialog and reset form
+      setOpen(false);
+      form.reset();
+      
+      // Notify parent of the update
+      onBatchAdded();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add new batch. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -143,7 +140,7 @@ const NewBatchDialog = ({ onBatchAdded }: NewBatchDialogProps) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {farms.map(farm => (
+                      {farmList.map(farm => (
                         <SelectItem key={farm.id} value={farm.id}>
                           {farm.name}
                         </SelectItem>

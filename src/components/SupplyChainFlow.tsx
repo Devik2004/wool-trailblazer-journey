@@ -1,7 +1,7 @@
 
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { woolBatches, processingFacilities } from "@/data/wool-data";
 import { 
   Scissors, 
   FilterX, 
@@ -11,9 +11,10 @@ import {
   Paintbrush, 
   Shirt, 
   PackageCheck, 
-  Truck as TruckDelivery,
+  Truck,
   ArrowRight
 } from "lucide-react";
+import api from "@/services/apiService";
 
 // Map status to icon
 const statusIcons = {
@@ -25,7 +26,7 @@ const statusIcons = {
   'Dyed': <Paintbrush className="h-6 w-6" />,
   'Woven': <Shirt className="h-6 w-6" />,
   'Finished': <PackageCheck className="h-6 w-6" />,
-  'Delivered': <TruckDelivery className="h-6 w-6" />
+  'Delivered': <Truck className="h-6 w-6" />
 };
 
 const statusColors = {
@@ -41,6 +42,17 @@ const statusColors = {
 };
 
 const SupplyChainFlow = () => {
+  // Fetch data using React Query
+  const { data: woolBatches = [] } = useQuery({
+    queryKey: ['woolBatches'],
+    queryFn: () => api.batches.getAllBatches(),
+  });
+  
+  const { data: processingFacilities = [] } = useQuery({
+    queryKey: ['processingFacilities'],
+    queryFn: () => api.facilities.getAllFacilities(),
+  });
+
   return (
     <div className="p-4 md:p-6">
       <h1 className="text-2xl md:text-3xl font-bold text-wool-darkBrown mb-6">Supply Chain Flow</h1>
