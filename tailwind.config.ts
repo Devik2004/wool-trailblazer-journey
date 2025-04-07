@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+        // Wool tracking specific colors
+        wool: {
+          cream: '#F6F3E4',
+          beige: '#E5DCC5',
+          brown: '#A57F60',
+          darkBrown: '#7D5A50',
+          green: '#4F7942',
+          lightGreen: '#8FBC8F',
+          gray: '#8E9196',
+        }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,12 +95,27 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+        'fade-in': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(10px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in': 'fade-in 0.4s ease-out'
+			},
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        display: ['Montserrat', 'sans-serif'],
+      }
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
