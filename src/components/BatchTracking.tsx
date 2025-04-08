@@ -73,13 +73,13 @@ type JourneyStep = {
 type WoolBatch = {
   id: string;
   farm: string;
-  shearDate: string;
+  shear_date: string;
   weight: number;
   grade: string;
   color: string;
   qualityScore: number;
-  currentStatus: string;
-  currentLocation: string;
+  current_status: string;
+  current_location: string;
   journeyHistory?: JourneyStep[]; 
 };
 
@@ -266,8 +266,8 @@ const BatchTracking = () => {
 
   const filteredBatches = batchList.filter(batch =>
     (batch.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-    (batch.currentStatus?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-    (batch.currentLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+    (batch.current_status?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (batch.current_location?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
   const getStatusBadgeColor = (status: string) => {
@@ -315,11 +315,11 @@ const BatchTracking = () => {
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
-          { icon: Calendar, label: "Shear Date", value: formatDate(batch.shearDate) },
+          { icon: Calendar, label: "Shear Date", value: formatDate(batch.shear_date) },
           { icon: Scale, label: "Weight", value: `${batch.weight} kg` },
           { icon: Sparkles, label: "Grade", value: batch.grade },
           { icon: Palette, label: "Color", value: batch.color },
-          { icon: MapPin, label: "Current Location", value: batch.currentLocation },
+          { icon: MapPin, label: "Current Location", value: batch.current_location },
           { icon: ShieldCheck, label: "Quality Score", value: `${batch.qualityScore}/100` },
         ].map(({ icon: Icon, label, value }) => (
           <div key={label} className="space-y-1">
@@ -422,8 +422,8 @@ const BatchTracking = () => {
                         <Package className="h-5 w-5 mr-2 text-wool-brown" />
                         <CardTitle className="text-lg">{batch.id.replace('batch-', 'Batch ')}</CardTitle>
                       </div>
-                      <Badge className={getStatusBadgeColor(batch.currentStatus)}>
-                        {batch.currentStatus}
+                      <Badge className={getStatusBadgeColor(batch.current_status)}>
+                        {batch.current_status}
                       </Badge>
                     </div>
                     <CardDescription>From {getFarmName(batch.farm)}</CardDescription>
@@ -467,14 +467,14 @@ const BatchTracking = () => {
                       <TableCell className="font-medium">{batch.id.replace('batch-', 'Batch ')}</TableCell>
                       <TableCell>{getFarmName(batch.farm)}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusBadgeColor(batch.currentStatus)}>
-                          {batch.currentStatus}
+                        <Badge className={getStatusBadgeColor(batch.current_status)}>
+                          {batch.current_status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{batch.currentLocation}</TableCell>
+                      <TableCell>{batch.current_location}</TableCell>
                       <TableCell>{batch.weight} kg</TableCell>
                       <TableCell>{batch.grade}</TableCell>
-                      <TableCell>{formatDate(batch.shearDate)}</TableCell>
+                      <TableCell>{formatDate(batch.shear_date)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

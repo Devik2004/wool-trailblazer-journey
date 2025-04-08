@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from 'react-router-dom';
+
 import { 
   BarChart3, 
   Leaf, 
@@ -85,18 +87,23 @@ const Dashboard = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card className="border-wool-beige">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Farms</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Leaf className="h-5 w-5 text-wool-darkBrown mr-2" />
-              <div className="text-2xl font-bold">{farms.length}</div>
-            </div>
-          </CardContent>
-        </Card>
+        <Link to="/farm-registry">
+              <Card className="border-wool-beige">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Farms</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <Leaf className="h-5 w-5 text-wool-darkBrown mr-2" />
+                    <div className="text-2xl font-bold">{farms.length}</div>
+                  </div>
+                </CardContent>
+              </Card>
+        </Link>
         
+
+        <Link to="/batch-tracking">
+
         <Card className="border-wool-beige">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Batches</CardTitle>
@@ -108,7 +115,10 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+        </Link>
+
+
+        <Link to="/supply-chain">
         <Card className="border-wool-beige">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Processing Facilities</CardTitle>
@@ -120,6 +130,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+        </Link>
         
         <Card className="border-wool-beige">
           <CardHeader className="pb-2">
@@ -140,10 +151,10 @@ const Dashboard = () => {
             <BarChart3 className="h-4 w-4 mr-2" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="updates" className="data-[state=active]:bg-white">
+          {/* <TabsTrigger value="updates" className="data-[state=active]:bg-white">
             <Clock className="h-4 w-4 mr-2" />
             Recent Updates
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         
         <TabsContent value="overview" className="mt-0">

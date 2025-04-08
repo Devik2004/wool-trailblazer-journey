@@ -6,13 +6,14 @@ export interface Farm {
   id: string;
   name: string;
   location: string;
-  sheepCount: number;
+  sheep_count: number;
   certifications: string[];
-  contactPerson: string;
-  contactEmail: string;
-  joinedDate: string;
-  annualProduction: number; // in kg
+  contact_person: string;
+  contact_email: string;
+  joined_date: string;
+  annual_production: number; // in kg
   photo: string;
+  length?:number;
 }
 
 export interface JourneyHistoryItem {
@@ -70,36 +71,36 @@ export const farms: Farm[] = [
     id: 'farm-001',
     name: 'Highland Sheep Ranch',
     location: 'Scottish Highlands',
-    sheepCount: 1250,
+    sheep_count: 1250,
     certifications: ['Organic', 'Sustainable Farming'],
-    contactPerson: 'John MacLeod',
-    contactEmail: 'john@highlandsheep.com',
-    joinedDate: '2020-04-15',
-    annualProduction: 5600,
+    contact_person: 'John MacLeod',
+    contact_email: 'john@highlandsheep.com',
+    joined_date: '2020-04-15',
+    annual_production: 5600,
     photo: 'https://images.unsplash.com/photo-1516466823543-f945a3732093'
   },
   {
     id: 'farm-002',
     name: 'Green Valley Wool',
     location: 'Wales',
-    sheepCount: 780,
+    sheep_count: 780,
     certifications: ['Rainforest Alliance', 'Animal Welfare Approved'],
-    contactPerson: 'Emma Davies',
-    contactEmail: 'emma@greenvalleywool.com',
-    joinedDate: '2019-09-23',
-    annualProduction: 3200,
+    contact_person: 'Emma Davies',
+    contact_email: 'emma@greenvalleywool.com',
+    joined_date: '2019-09-23',
+    annual_production: 3200,
     photo: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30'
   },
   {
     id: 'farm-003',
     name: 'Alpine Merino Farm',
     location: 'Southern Alps, New Zealand',
-    sheepCount: 2100,
+    sheep_count: 2100,
     certifications: ['Organic', 'Sustainable Farming', 'ZQ Certified'],
-    contactPerson: 'David Miller',
-    contactEmail: 'david@alpinemerino.co.nz',
-    joinedDate: '2018-06-10',
-    annualProduction: 9400,
+    contact_person: 'David Miller',
+    contact_email: 'david@alpinemerino.co.nz',
+    joined_date: '2018-06-10',
+    annual_production: 9400,
     photo: 'https://images.unsplash.com/photo-1446824505046-e43605ffb17f'
   }
 ];

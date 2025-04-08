@@ -119,7 +119,7 @@ const FarmRegistry = () => {
                         <Leaf className="h-4 w-4 mr-2 text-wool-brown" />
                         <span className="text-sm">Sheep Count</span>
                       </div>
-                      <span className="font-medium">{farm.sheepCount}</span>
+                      <span className="font-medium">{farm.sheep_count}</span>
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -127,7 +127,7 @@ const FarmRegistry = () => {
                         <Scissors className="h-4 w-4 mr-2 text-wool-brown" />
                         <span className="text-sm">Annual Production</span>
                       </div>
-                      <span className="font-medium">{farm.annualProduction} kg</span>
+                      <span className="font-medium">{farm.annual_production} kg</span>
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -135,7 +135,7 @@ const FarmRegistry = () => {
                         <CalendarDays className="h-4 w-4 mr-2 text-wool-brown" />
                         <span className="text-sm">Joined</span>
                       </div>
-                      <span className="font-medium">{new Date(farm.joinedDate).toLocaleDateString()}</span>
+                      <span className="font-medium">{new Date(farm.joined_date).toLocaleDateString()}</span>
                     </div>
 
                     <div className="space-y-2">
@@ -155,11 +155,11 @@ const FarmRegistry = () => {
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <User className="h-4 w-4 mr-2 text-wool-brown" />
-                        <span className="text-sm">{farm.contactPerson}</span>
+                        <span className="text-sm">{farm.contact_person}</span>
                       </div>
                       <div className="flex items-center">
                         <Mail className="h-4 w-4 mr-2 text-wool-brown" />
-                        <span className="text-sm">{farm.contactEmail}</span>
+                        <span className="text-sm">{farm.contact_email}</span>
                       </div>
                     </div>
                   </div>
@@ -167,7 +167,7 @@ const FarmRegistry = () => {
 
                 <CardFooter className="flex justify-between pt-2 border-t">
                   <div className="text-sm text-wool-gray">
-                    Active Batches: <span className="font-medium">{farmBatches.length}</span>
+                    Active Batches: <span className="font-medium">{farm.length}</span>
                   </div>
                   <Button
                     variant="outline"

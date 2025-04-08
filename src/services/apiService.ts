@@ -145,7 +145,7 @@ export const facilityAPI = {
   getAllFacilities: async (): Promise<ProcessingFacility[]> => {
     try {
       const response = await apiClient.get<ProcessingFacility[]>("/processing-facilities/");
-      console.log(response.data);
+      // console.log(response.data);
       return response.data;
     } catch (error) {
       handleError(error);
@@ -157,7 +157,10 @@ export const facilityAPI = {
 export const analyticsAPI = {
   getAnalyticsData: async (): Promise<AnalyticsData> => {
     try {
-      const response = await apiClient.get<AnalyticsData>("/analytics-summary/");
+      // const response = await apiClient.get<AnalyticsData>("/analytics-summary/");
+      const response = await apiClient.get<AnalyticsData>("/analytics-data/");
+      console.log("Analytics Data:", response.data);
+
       return response.data;
     } catch (error) {
       handleError(error);
