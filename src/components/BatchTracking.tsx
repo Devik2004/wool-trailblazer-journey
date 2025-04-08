@@ -1,5 +1,6 @@
+// BatchTracking.tsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -42,29 +43,235 @@ import {
   ShieldCheck,
   Plus
 } from "lucide-react";
-import { woolBatches, farms, WoolBatch } from "@/data/wool-data";
+import axios from "axios";
 import NewBatchDialog from "./NewBatchDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Types
+type JourneyStep = {
+  status: string;
+  location: string;
+  timestamp: string;
+  handledBy: string;
+  notes?: string;
+};
+
+type WoolBatch = {
+  id: string;
+  farm: string;
+  shearDate: string;
+  weight: number;
+  grade: string;
+  color: string;
+  qualityScore: number;
+  currentStatus: string;
+  currentLocation: string;
+  journeyHistory?: JourneyStep[]; 
+};
+
+type Farm = {
+  id: string;
+  name: string;
+};
+
+const statusOptions = [
+  "Sheared",
+  "Sorted",
+  "Cleaned",
+  "Processed",
+  "Spun",
+  'Dyed',
+  'Woven',
+  'Finished',
+  'Delivered'
+
+];
+
+const UpdateJourneyDialog = ({ batchList, onUpdate }: { batchList: WoolBatch[], onUpdate: () => void }) => {
+  const [selectedBatch, setSelectedBatch] = useState("");
+  const [status, setStatus] = useState("");
+  const [location, setLocation] = useState("");
+  const [handledBy, setHandledBy] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.patch(
+        `http://localhost:8000/api/journey-history/update-by-batch/${selectedBatch}/`,
+        {
+          status,
+          location,
+          handled_by: handledBy
+        }
+      );
+      onUpdate();
+      setIsOpen(false);
+      // Reset form
+      setSelectedBatch("");
+      setStatus("");
+      setLocation("");
+      setHandledBy("");
+    } catch (error) {
+      console.error("Failed to update journey", error);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-wool-green text-white hover:bg-wool-darkGreen">
+          <Plus className="h-4 w-4 mr-2" />
+          Update Journey
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Update Batch Journey</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="batch">Batch ID</Label>
+            <Select value={selectedBatch} onValueChange={setSelectedBatch} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a batch" />
+              </SelectTrigger>
+              <SelectContent>
+                {batchList.map(batch => (
+                  <SelectItem key={batch.id} value={batch.id}>
+                    {batch.id.replace('batch-', 'Batch ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={status} onValueChange={setStatus} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map(option => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter location"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="handledBy">Handled By</Label>
+            <Input
+              id="handledBy"
+              value={handledBy}
+              onChange={(e) => setHandledBy(e.target.value)}
+              placeholder="Enter handler name/team"
+              required
+            />
+          </div>
+          
+          <Button type="submit" className="w-full bg-wool-green hover:bg-wool-darkGreen">
+            Update Journey
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const BatchTracking = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [batchList, setBatchList] = useState([...woolBatches]);
-  
-  // Filter batches based on search term
-  const filteredBatches = batchList.filter(batch => 
-    batch.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.currentStatus.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    batch.currentLocation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [batchList, setBatchList] = useState<WoolBatch[]>([]);
+  const [farmsData, setFarmsData] = useState<Farm[]>([]);
 
-  // Get farm name by ID
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [batchesRes, farmsRes, journeyRes] = await Promise.all([
+        axios.get("http://localhost:8000/api/wool-batches/"),
+        axios.get("http://localhost:8000/api/farms/"),
+        axios.get("http://localhost:8000/api/journey-history/")
+      ]);
+
+      const batches: WoolBatch[] = batchesRes.data;
+      const journeySteps: any[] = journeyRes.data;
+
+      // Group journey steps by batch ID
+      const journeyMap: Record<string, JourneyStep[]> = {};
+      journeySteps.forEach(step => {
+        const formattedStep: JourneyStep = {
+          status: step.status,
+          location: step.location,
+          timestamp: step.timestamp,
+          handledBy: step.handled_by,
+          notes: step.notes,
+        };
+        if (!journeyMap[step.batch]) {
+          journeyMap[step.batch] = [];
+        }
+        journeyMap[step.batch].push(formattedStep);
+      });
+
+      const enrichedBatches = batches.map(batch => ({
+        ...batch,
+        journeyHistory: journeyMap[batch.id] || []
+      }));
+
+      setBatchList(enrichedBatches);
+      setFarmsData(farmsRes.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   const getFarmName = (farmId: string) => {
-    const farm = farms.find(f => f.id === farmId);
+    const farm = farmsData.find(f => f.id == farmId);
     return farm ? farm.name : "Unknown Farm";
   };
 
-  // Status badge color mapping
+  const handleBatchAdded = async () => {
+    await fetchData();
+  };
+
+  const filteredBatches = batchList.filter(batch =>
+    (batch.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (batch.currentStatus?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    (batch.currentLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  );
+
   const getStatusBadgeColor = (status: string) => {
-    const statusColors: {[key: string]: string} = {
+    const statusColors: { [key: string]: string } = {
       'Sheared': 'bg-wool-beige text-wool-darkBrown',
       'Sorted': 'bg-wool-beige text-wool-darkBrown',
       'Cleaned': 'bg-wool-beige text-wool-darkBrown',
@@ -75,23 +282,26 @@ const BatchTracking = () => {
       'Finished': 'bg-wool-darkBrown text-white',
       'Delivered': 'bg-wool-green text-white',
     };
-    
     return statusColors[status] || 'bg-wool-gray';
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     }).format(date);
   };
-
-  // Format timestamp to date and time
+  
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -101,64 +311,27 @@ const BatchTracking = () => {
     }).format(date);
   };
 
-  // Handle batch added event
-  const handleBatchAdded = () => {
-    setBatchList([...woolBatches]);
-  };
-
-  // Render batch details
   const renderBatchDetails = (batch: WoolBatch) => (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4 mr-1" />
-            Shear Date
+        {[
+          { icon: Calendar, label: "Shear Date", value: formatDate(batch.shearDate) },
+          { icon: Scale, label: "Weight", value: `${batch.weight} kg` },
+          { icon: Sparkles, label: "Grade", value: batch.grade },
+          { icon: Palette, label: "Color", value: batch.color },
+          { icon: MapPin, label: "Current Location", value: batch.currentLocation },
+          { icon: ShieldCheck, label: "Quality Score", value: `${batch.qualityScore}/100` },
+        ].map(({ icon: Icon, label, value }) => (
+          <div key={label} className="space-y-1">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Icon className="h-4 w-4 mr-1" />
+              {label}
+            </div>
+            <div className="font-medium">{value}</div>
           </div>
-          <div className="font-medium">{formatDate(batch.shearDate)}</div>
-        </div>
-        
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Scale className="h-4 w-4 mr-1" />
-            Weight
-          </div>
-          <div className="font-medium">{batch.weight} kg</div>
-        </div>
-        
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Sparkles className="h-4 w-4 mr-1" />
-            Grade
-          </div>
-          <div className="font-medium">{batch.grade}</div>
-        </div>
-        
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Palette className="h-4 w-4 mr-1" />
-            Color
-          </div>
-          <div className="font-medium">{batch.color}</div>
-        </div>
-        
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4 mr-1" />
-            Current Location
-          </div>
-          <div className="font-medium">{batch.currentLocation}</div>
-        </div>
-        
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 mr-1" />
-            Quality Score
-          </div>
-          <div className="font-medium">{batch.qualityScore}/100</div>
-        </div>
+        ))}
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex items-center text-sm text-muted-foreground">
           <History className="h-4 w-4 mr-1" />
@@ -176,19 +349,27 @@ const BatchTracking = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {batch.journeyHistory.map((step, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <Badge className={getStatusBadgeColor(step.status)}>
-                      {step.status}
-                    </Badge>
+              {batch.journeyHistory && batch.journeyHistory.length > 0 ? (
+                batch.journeyHistory.map((step, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <Badge className={getStatusBadgeColor(step.status)}>
+                        {step.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{step.location}</TableCell>
+                    <TableCell>{formatTimestamp(step.timestamp)}</TableCell>
+                    <TableCell>{step.handledBy}</TableCell>
+                    <TableCell>{step.notes || '-'}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
+                    No journey history available
                   </TableCell>
-                  <TableCell>{step.location}</TableCell>
-                  <TableCell>{formatTimestamp(step.timestamp)}</TableCell>
-                  <TableCell>{step.handledBy}</TableCell>
-                  <TableCell>{step.notes || '-'}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
@@ -213,24 +394,23 @@ const BatchTracking = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <NewBatchDialog onBatchAdded={handleBatchAdded} />
+          <div className="flex gap-2">
+            <NewBatchDialog onBatchAdded={handleBatchAdded} statusOptions={statusOptions} />
+            <UpdateJourneyDialog batchList={batchList} onUpdate={fetchData} />
+          </div>
         </div>
       </div>
 
       <Tabs defaultValue="grid" className="w-full">
         <TabsList className="bg-wool-beige text-wool-brown mb-4">
-          <TabsTrigger value="grid" className="data-[state=active]:bg-white">
-            Grid View
-          </TabsTrigger>
-          <TabsTrigger value="list" className="data-[state=active]:bg-white">
-            List View
-          </TabsTrigger>
+          <TabsTrigger value="grid" className="data-[state=active]:bg-white">Grid View</TabsTrigger>
+          <TabsTrigger value="list" className="data-[state=active]:bg-white">List View</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="grid" className="mt-0">
+
+        <TabsContent value="grid">
           {filteredBatches.length === 0 ? (
-            <div className="text-center p-8">
-              <p className="text-wool-gray">No batches match your search criteria.</p>
+            <div className="text-center p-8 text-wool-gray">
+              No batches match your search criteria.
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -246,11 +426,8 @@ const BatchTracking = () => {
                         {batch.currentStatus}
                       </Badge>
                     </div>
-                    <CardDescription>
-                      From {getFarmName(batch.farmId)}
-                    </CardDescription>
+                    <CardDescription>From {getFarmName(batch.farm)}</CardDescription>
                   </CardHeader>
-                  
                   <CardContent>
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="details" className="border-b-0">
@@ -268,8 +445,8 @@ const BatchTracking = () => {
             </div>
           )}
         </TabsContent>
-        
-        <TabsContent value="list" className="mt-0">
+
+        <TabsContent value="list">
           <Card className="border-wool-beige">
             <CardContent className="p-0">
               <Table>
@@ -288,7 +465,7 @@ const BatchTracking = () => {
                   {filteredBatches.map(batch => (
                     <TableRow key={batch.id}>
                       <TableCell className="font-medium">{batch.id.replace('batch-', 'Batch ')}</TableCell>
-                      <TableCell>{getFarmName(batch.farmId)}</TableCell>
+                      <TableCell>{getFarmName(batch.farm)}</TableCell>
                       <TableCell>
                         <Badge className={getStatusBadgeColor(batch.currentStatus)}>
                           {batch.currentStatus}

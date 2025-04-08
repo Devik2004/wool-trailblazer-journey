@@ -1,52 +1,74 @@
-
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
-import { analyticsData, processingFacilities, farms } from "@/data/wool-data";
 import { Button } from "@/components/ui/button";
 import { Download, Building, Users } from "lucide-react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import axios from "axios";
+
+const COLORS = ["#A57F60", "#4F7942", "#7D5A50", "#8FBC8F", "#E5DCC5"];
 
 const Analytics = () => {
-  // Colors for charts
-  const COLORS = ['#A57F60', '#4F7942', '#7D5A50', '#8FBC8F', '#E5DCC5'];
-  
-  // Status distribution data for pie chart
-  const statusDistributionData = Object.entries(analyticsData.statusDistribution)
-    .map(([status, count]) => ({
-      name: status,
-      value: count
-    }));
-    
-  // Prepare facility utilization data
-  const facilityUtilizationData = processingFacilities.map(facility => ({
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [processingFacilities, setProcessingFacilities] = useState<any[]>([]);
+  const [farms, setFarms] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [analyticsRes, facilitiesRes, farmsRes] = await Promise.all([
+          axios.get("http://localhost:8000/api/analytics-data/"),
+          axios.get("http://localhost:8000/api/facilities-data/"),
+          axios.get("http://localhost:8000/api/farms/"),
+        ]);
+        setAnalyticsData(analyticsRes.data);
+        setProcessingFacilities(facilitiesRes.data);
+        setFarms(farmsRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (!analyticsData) return <div className="p-6">Loading...</div>;
+
+  const statusDistributionData = Object.entries(
+    analyticsData.statusDistribution
+  ).map(([status, count]) => ({
+    name: status,
+    value: count as number,
+  }));
+
+  const facilityUtilizationData = processingFacilities.map((facility) => ({
     name: facility.name,
-    utilization: facility.currentUtilization,
-    capacity: facility.capacity
+    utilization: facility.current_utilization,
+    capacity: facility.capacity,
   }));
 
   return (
@@ -62,6 +84,7 @@ const Analytics = () => {
       </div>
 
       <div className="grid gap-6 mb-8 md:grid-cols-2">
+        {/* Facility Utilization Chart */}
         <Card className="border-wool-beige">
           <CardHeader>
             <div className="flex items-center space-x-2">
@@ -81,18 +104,18 @@ const Analytics = () => {
                   margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
+                  <XAxis type="number" domain={[0, 10000]} />
                   <YAxis type="category" dataKey="name" width={100} />
-                  <Tooltip 
-                    formatter={(value) => [`${value}%`, 'Utilization']}
-                    labelFormatter={() => 'Facility Utilization'}
+                  <Tooltip
+                    formatter={(value) => [`${value} kg`, "Utilization"]}
+                    labelFormatter={() => "Facility Utilization"}
                   />
                   <Legend />
-                  <Bar 
-                    dataKey="utilization" 
-                    name="Current Utilization (%)" 
+                  <Bar
+                    dataKey="utilization"
+                    name="Current Utilization (kg)"
                     fill="#A57F60"
-                    radius={[0, 4, 4, 0]} 
+                    radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -100,6 +123,7 @@ const Analytics = () => {
           </CardContent>
         </Card>
 
+        {/* Production by Farm Chart */}
         <Card className="border-wool-beige">
           <CardHeader>
             <div className="flex items-center space-x-2">
@@ -119,14 +143,22 @@ const Analytics = () => {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="farmName" />
-                  <YAxis label={{ value: 'kg', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip formatter={(value) => [`${value} kg`, 'Production']} />
+                  <YAxis
+                    label={{
+                      value: "kg",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(value) => [`${value} kg`, "Production"]}
+                  />
                   <Legend />
-                  <Bar 
-                    dataKey="production" 
-                    name="Wool Production (kg)" 
-                    fill="#4F7942" 
-                    radius={[4, 4, 0, 0]} 
+                  <Bar
+                    dataKey="production"
+                    name="Wool Production (kg)"
+                    fill="#4F7942"
+                    radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -136,6 +168,7 @@ const Analytics = () => {
       </div>
 
       <div className="grid gap-6 mb-8 md:grid-cols-3">
+        {/* Status Distribution Pie Chart */}
         <Card className="border-wool-beige md:col-span-1">
           <CardHeader>
             <CardTitle>Batch Status Distribution</CardTitle>
@@ -153,22 +186,29 @@ const Analytics = () => {
                     cy="50%"
                     innerRadius={60}
                     outerRadius={80}
-                    fill="#8884d8"
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) => percent > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
+                    label={({ name, percent }) =>
+                      percent > 0
+                        ? `${name} ${(percent * 100).toFixed(0)}%`
+                        : ""
+                    }
                   >
                     {statusDistributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${value} batches`, 'Count']} />
+                  <Tooltip formatter={(value) => [`${value} batches`, "Count"]} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
+        {/* Facilities Table */}
         <Card className="border-wool-beige md:col-span-2">
           <CardHeader>
             <CardTitle>Processing Partners</CardTitle>
@@ -190,23 +230,33 @@ const Analytics = () => {
               <TableBody>
                 {processingFacilities.map((facility) => (
                   <TableRow key={facility.id}>
-                    <TableCell className="font-medium">{facility.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {facility.name}
+                    </TableCell>
                     <TableCell>{facility.type}</TableCell>
                     <TableCell>{facility.location}</TableCell>
                     <TableCell>{facility.capacity}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <div className="w-full bg-wool-beige h-2 rounded-full overflow-hidden mr-2">
-                          <div 
+                          <div
                             className={`h-full ${
-                              facility.currentUtilization > 80 ? 'bg-red-500' : 
-                              facility.currentUtilization > 60 ? 'bg-wool-brown' : 
-                              'bg-wool-green'
+                              facility.current_utilization > 8000
+                                ? "bg-red-500"
+                                : facility.current_utilization > 6000
+                                ? "bg-wool-brown"
+                                : "bg-wool-green"
                             }`}
-                            style={{ width: `${facility.currentUtilization}%` }}
+                            style={{
+                              width: `${(facility.current_utilization /
+                                facility.capacity) *
+                                100}%`,
+                            }}
                           ></div>
                         </div>
-                        <span className="text-sm">{facility.currentUtilization}%</span>
+                        <span className="text-sm">
+                          {facility.current_utilization} kg
+                        </span>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -217,6 +267,7 @@ const Analytics = () => {
         </Card>
       </div>
 
+      {/* Farms Table */}
       <Card className="border-wool-beige">
         <CardHeader>
           <CardTitle>Registered Farms</CardTitle>
@@ -241,10 +292,10 @@ const Analytics = () => {
                 <TableRow key={farm.id}>
                   <TableCell className="font-medium">{farm.name}</TableCell>
                   <TableCell>{farm.location}</TableCell>
-                  <TableCell>{farm.sheepCount}</TableCell>
-                  <TableCell>{farm.annualProduction}</TableCell>
-                  <TableCell>{farm.contactPerson}</TableCell>
-                  <TableCell>{farm.certifications.join(', ')}</TableCell>
+                  <TableCell>{farm.sheep_count}</TableCell>
+                  <TableCell>{farm.annual_production}</TableCell>
+                  <TableCell>{farm.contact_person}</TableCell>
+                  <TableCell>{farm.certifications.join(", ")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -30,8 +30,8 @@ export interface WoolBatch {
   weight: number; // in kg
   grade: WoolGrade;
   color: string;
-  currentStatus: BatchStatus;
-  currentLocation: string;
+  current_status: BatchStatus;
+  current_location: string;
   journeyHistory: JourneyHistoryItem[];
   qualityScore: number; // 0-100
 }
@@ -42,7 +42,7 @@ export interface ProcessingFacility {
   type: 'Sorting' | 'Washing' | 'Processing' | 'Spinning' | 'Dyeing' | 'Weaving';
   location: string;
   capacity: number; // in kg
-  currentUtilization: number; // percentage
+  current_utilization: number; // percentage
 }
 
 // Define the AnalyticsData type
@@ -112,8 +112,8 @@ export const woolBatches: WoolBatch[] = [
     weight: 450,
     grade: 'Fine',
     color: 'White',
-    currentStatus: 'Processed',
-    currentLocation: 'Yorkshire Processing Co.',
+    current_status: 'Processed',
+    current_location: 'Yorkshire Processing Co.',
     journeyHistory: [
       {
         status: 'Sheared',
@@ -152,8 +152,8 @@ export const woolBatches: WoolBatch[] = [
     weight: 380,
     grade: 'Medium',
     color: 'Cream',
-    currentStatus: 'Spun',
-    currentLocation: 'Traditional Spinners Ltd.',
+    current_status: 'Spun',
+    current_location: 'Traditional Spinners Ltd.',
     journeyHistory: [
       {
         status: 'Sheared',
@@ -196,8 +196,8 @@ export const woolBatches: WoolBatch[] = [
     weight: 720,
     grade: 'Superfine',
     color: 'White',
-    currentStatus: 'Cleaned',
-    currentLocation: 'EcoClean Wool Services',
+    current_status: 'Cleaned',
+    current_location: 'EcoClean Wool Services',
     journeyHistory: [
       {
         status: 'Sheared',
@@ -230,8 +230,8 @@ export const woolBatches: WoolBatch[] = [
     weight: 390,
     grade: 'Medium',
     color: 'Light Gray',
-    currentStatus: 'Dyed',
-    currentLocation: 'Natural Dyes Workshop',
+    current_status: 'Dyed',
+    current_location: 'Natural Dyes Workshop',
     journeyHistory: [
       {
         status: 'Sheared',
@@ -282,7 +282,7 @@ export const processingFacilities: ProcessingFacility[] = [
     type: 'Washing',
     location: 'Leeds, UK',
     capacity: 2000,
-    currentUtilization: 65
+    current_utilization: 65
   },
   {
     id: 'facility-002',
@@ -290,7 +290,7 @@ export const processingFacilities: ProcessingFacility[] = [
     type: 'Processing',
     location: 'Yorkshire, UK',
     capacity: 1800,
-    currentUtilization: 80
+    current_utilization: 80
   },
   {
     id: 'facility-003',
@@ -298,7 +298,7 @@ export const processingFacilities: ProcessingFacility[] = [
     type: 'Spinning',
     location: 'Manchester, UK',
     capacity: 1500,
-    currentUtilization: 70
+    current_utilization: 70
   },
   {
     id: 'facility-004',
@@ -306,7 +306,7 @@ export const processingFacilities: ProcessingFacility[] = [
     type: 'Dyeing',
     location: 'Bristol, UK',
     capacity: 800,
-    currentUtilization: 45
+    current_utilization: 45
   },
   {
     id: 'facility-005',
@@ -314,7 +314,7 @@ export const processingFacilities: ProcessingFacility[] = [
     type: 'Weaving',
     location: 'Edinburgh, UK',
     capacity: 1200,
-    currentUtilization: 60
+    current_utilization: 60
   }
 ];
 
@@ -329,15 +329,15 @@ export const analyticsData: AnalyticsData = {
       .reduce((total, batch) => total + batch.weight, 0)
   })),
   statusDistribution: {
-    Sheared: woolBatches.filter(batch => batch.currentStatus === 'Sheared').length,
-    Sorted: woolBatches.filter(batch => batch.currentStatus === 'Sorted').length,
-    Cleaned: woolBatches.filter(batch => batch.currentStatus === 'Cleaned').length,
-    Processed: woolBatches.filter(batch => batch.currentStatus === 'Processed').length,
-    Spun: woolBatches.filter(batch => batch.currentStatus === 'Spun').length,
-    Dyed: woolBatches.filter(batch => batch.currentStatus === 'Dyed').length,
-    Woven: woolBatches.filter(batch => batch.currentStatus === 'Woven').length,
-    Finished: woolBatches.filter(batch => batch.currentStatus === 'Finished').length,
-    Delivered: woolBatches.filter(batch => batch.currentStatus === 'Delivered').length,
+    Sheared: woolBatches.filter(batch => batch.current_status === 'Sheared').length,
+    Sorted: woolBatches.filter(batch => batch.current_status === 'Sorted').length,
+    Cleaned: woolBatches.filter(batch => batch.current_status === 'Cleaned').length,
+    Processed: woolBatches.filter(batch => batch.current_status === 'Processed').length,
+    Spun: woolBatches.filter(batch => batch.current_status === 'Spun').length,
+    Dyed: woolBatches.filter(batch => batch.current_status === 'Dyed').length,
+    Woven: woolBatches.filter(batch => batch.current_status === 'Woven').length,
+    Finished: woolBatches.filter(batch => batch.current_status === 'Finished').length,
+    Delivered: woolBatches.filter(batch => batch.current_status === 'Delivered').length,
   },
   monthlyProduction: [
     { month: 'Jan', amount: 0 },
@@ -355,6 +355,6 @@ export const analyticsData: AnalyticsData = {
   ],
   facilityUtilization: processingFacilities.map(facility => ({
     facilityName: facility.name,
-    utilizationPercentage: facility.currentUtilization
+    utilizationPercentage: facility.current_utilization
   }))
 };

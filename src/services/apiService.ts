@@ -145,6 +145,7 @@ export const facilityAPI = {
   getAllFacilities: async (): Promise<ProcessingFacility[]> => {
     try {
       const response = await apiClient.get<ProcessingFacility[]>("/processing-facilities/");
+      console.log(response.data);
       return response.data;
     } catch (error) {
       handleError(error);
